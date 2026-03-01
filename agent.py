@@ -15,14 +15,33 @@ from tools.market_trends import market_trends_tool
 
 from composio_langchain import LangchainProvider
 
+# Aggressive Multi-path Import for Action Enum
+Action = None
+import_errors = []
+
 try:
     from composio.client.enums import Action
-except ImportError:
+except ImportError as e:
+    import_errors.append(f"composio.client.enums: {e}")
     try:
         from composio import Action
-    except ImportError:
-        # Fallback for older or newer versions if paths change
-        Action = None
+    except ImportError as e:
+        import_errors.append(f"composio: {e}")
+        try:
+            from composio_core.client.enums import Action
+        except ImportError as e:
+            import_errors.append(f"composio_core.client.enums: {e}")
+            try:
+                from composio_core import Action
+            except ImportError as e:
+                import_errors.append(f"composio_core: {e}")
+                # Last resort, check if it's in a sub-module of langchain provider
+                try:
+                    import composio_langchain
+                    if hasattr(composio_langchain, 'Action'):
+                        Action = composio_langchain.Action
+                except:
+                    pass
 
 load_dotenv()
 
@@ -52,7 +71,8 @@ class LinearCareerAgent:
         if composio_api_key:
             try:
                 if Action is None:
-                    raise ImportError("Composio 'Action' enum could not be imported from any known module path.")
+                    errors_str = " | ".join(import_errors)
+                    raise ImportError(f"Composio 'Action' enum could not be imported. Failures: {errors_str}")
                 
                 # Newer versions of composio-langchain use LangchainProvider
                 self.composio_provider = LangchainProvider(api_key=composio_api_key)
