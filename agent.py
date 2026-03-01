@@ -14,34 +14,7 @@ from tools.company_info import company_info_tool
 from tools.market_trends import market_trends_tool
 
 from composio_langchain import LangchainProvider
-
-# Aggressive Multi-path Import for Action Enum
-Action = None
-import_errors = []
-
-try:
-    from composio.client.enums import Action
-except ImportError as e:
-    import_errors.append(f"composio.client.enums: {e}")
-    try:
-        from composio import Action
-    except ImportError as e:
-        import_errors.append(f"composio: {e}")
-        try:
-            from composio_core.client.enums import Action
-        except ImportError as e:
-            import_errors.append(f"composio_core.client.enums: {e}")
-            try:
-                from composio_core import Action
-            except ImportError as e:
-                import_errors.append(f"composio_core: {e}")
-                # Last resort, check if it's in a sub-module of langchain provider
-                try:
-                    import composio_langchain
-                    if hasattr(composio_langchain, 'Action'):
-                        Action = composio_langchain.Action
-                except:
-                    pass
+from composio import Composio
 
 load_dotenv()
 
@@ -70,13 +43,18 @@ class LinearCareerAgent:
         composio_api_key = os.getenv("COMPOSIO_API_KEY")
         if composio_api_key:
             try:
-                if Action is None:
-                    errors_str = " | ".join(import_errors)
-                    raise ImportError(f"Composio 'Action' enum could not be imported. Failures: {errors_str}")
+                # Direct SDK initialization is more stable than high-level wrappers
+                self.composio_sdk = Composio(api_key=composio_api_key)
+                self.langchain_provider = LangchainProvider()
                 
-                # Newer versions of composio-langchain use LangchainProvider
-                self.composio_provider = LangchainProvider(api_key=composio_api_key)
-                self.linkedin_tools = self.composio_provider.get_tools(actions=[Action.LINKEDIN_GET_PROFILE])
+                # Fetch LinkedIn tool by string slug to avoid Enum import issues
+                tools = self.composio_sdk.tools.get(user_id="default_user", tools=["linkedin_get_profile"])
+                
+                # Wrap tools for Langchain
+                self.linkedin_tools = self.langchain_provider.wrap_tools(
+                    tools=tools,
+                    execute_tool=self.composio_sdk.tools.execute
+                )
             except Exception as e:
                 self.composio_error = f"Composio initialization error: {str(e)}"
                 self.linkedin_tools = None
