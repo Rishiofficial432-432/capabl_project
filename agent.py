@@ -47,16 +47,21 @@ class LinearCareerAgent:
         )
 
         # Init Composio
+        self.composio_error = None
         composio_api_key = os.getenv("COMPOSIO_API_KEY")
         if composio_api_key:
             try:
+                if Action is None:
+                    raise ImportError("Composio 'Action' enum could not be imported from any known module path.")
+                
                 # Newer versions of composio-langchain use LangchainProvider
                 self.composio_provider = LangchainProvider(api_key=composio_api_key)
                 self.linkedin_tools = self.composio_provider.get_tools(actions=[Action.LINKEDIN_GET_PROFILE])
             except Exception as e:
-                print(f"Composio init error: {e}")
+                self.composio_error = f"Composio initialization error: {str(e)}"
                 self.linkedin_tools = None
         else:
+            self.composio_error = "COMPOSIO_API_KEY is not configured in Hugging Face Space Secrets."
             self.linkedin_tools = None
 
     async def ask(self, user_query: str, chat_history: list = None) -> str:
@@ -81,7 +86,7 @@ class LinearCareerAgent:
                     # For a profile URL, we pass it under the 'url' arg or let ainovke handle it if it expects a dict
                     raw_data = await profile_tool.ainvoke({"url": extraction_arg, "username": extraction_arg})
                 else:
-                    raw_data = '{"error": "COMPOSIO_API_KEY is not configured in environment variables."}'
+                    raw_data = json.dumps({"error": self.composio_error or "Unknown Composio error"})
             elif intent == "market_trends":
                 raw_data = await market_trends_tool.ainvoke(extraction_arg)
 
