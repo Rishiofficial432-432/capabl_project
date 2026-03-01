@@ -719,7 +719,16 @@ def tab_linkedin():
             st.error(f"❌ {err}")
             return
 
-        agent_query = f"Please extract the LinkedIn profile context for '{selected_url}' and summarize their top skills, experience, and educational background beautifully. Make sure to append the RAW JSON API data at the bottom of your response."
+        agent_query = (
+            f"Please extract the LinkedIn profile context for '{selected_url}' and act as an expert career coach. "
+            "Using the extracted data (experience, education, certifications, projects), provide a deep profile analysis including: "
+            "1. **Executive Summary** of their professional identity. "
+            "2. **Plus Points** (Core strengths & unique skills). "
+            "3. **Minus Points / Gaps** (Areas for improvement or missing elements). "
+            "4. **Best Job Roles** (3-4 specific career trajectory recommendations). "
+            "5. **Where to Apply** (Types of companies or specific Indian companies that fit this profile). "
+            "Make sure to append the RAW JSON API data at the bottom of your response."
+        )
 
         with st.spinner("Agent is scanning LinkedIn profile…"):
             from agent import ask_agent_async

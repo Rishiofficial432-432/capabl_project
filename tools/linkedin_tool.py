@@ -50,10 +50,12 @@ def linkedin_profile_tool(linkedin_url: str) -> str:
                 "location": data.get("locationName"),
                 "experiences": [],
                 "education": [],
+                "certifications": [],
+                "projects": [],
             }
             
-            # Extract up to top 3 experiences
-            for exp in data.get("experience", [])[:3]:
+            # Extract up to top 5 experiences for deep analysis
+            for exp in data.get("experience", [])[:5]:
                 profile_summary["experiences"].append({
                     "companyName": exp.get("companyName"),
                     "title": exp.get("title"),
@@ -67,6 +69,21 @@ def linkedin_profile_tool(linkedin_url: str) -> str:
                     "schoolName": edu.get("schoolName"),
                     "degreeName": edu.get("degreeName"),
                     "fieldOfStudy": edu.get("fieldOfStudy"),
+                })
+                
+            # Extract certifications (RapidAPI usually provides this under 'certifications')
+            for cert in data.get("certifications", [])[:5]:
+                profile_summary["certifications"].append({
+                    "name": cert.get("name"),
+                    "authority": cert.get("authority"),
+                    "timePeriod": cert.get("timePeriod")
+                })
+                
+            # Extract projects
+            for proj in data.get("projects", [])[:3]:
+                profile_summary["projects"].append({
+                    "title": proj.get("title"),
+                    "description": proj.get("description")
                 })
                 
             return json.dumps(profile_summary, indent=2)
