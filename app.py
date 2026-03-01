@@ -7,6 +7,7 @@ Track A | Week 1-2 Milestone
 
 import json
 import os
+import asyncio
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -477,8 +478,8 @@ def tab_chat(filters: dict):
         st.session_state.messages.append({"role": "user", "content": user_input})
 
         with st.spinner("🔍 Searching the Indian job market…"):
-            from agent import ask_agent
-            response = ask_agent(st.session_state.agent_executor, full_query)
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, full_query, st.session_state.messages))
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 
@@ -535,8 +536,8 @@ def tab_jobs(filters: dict):
         agent_query = f"I am using the Job Listings tab. Please find jobs with these exact parameters and return the results as JSON: {query_payload}"
 
         with st.spinner("Agent is searching the market…"):
-            from agent import ask_agent
-            response = ask_agent(st.session_state.agent_executor, agent_query)
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, agent_query))
 
         try:
             # Try to extract JSON from agent response
@@ -576,8 +577,8 @@ def tab_jobs(filters: dict):
         agent_query = "Fetch 6 high-quality 'Software Engineer' jobs in India as JSON."
         
         with st.spinner("Agent is fetching featured jobs…"):
-            from agent import ask_agent
-            response = ask_agent(st.session_state.agent_executor, agent_query)
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, agent_query))
             
         try:
             if "[{" in response:
@@ -643,8 +644,8 @@ def tab_company():
         agent_query = f"Research the company '{selected}' in the Indian market and return the full details as JSON."
 
         with st.spinner(f"Agent is researching {selected}…"):
-            from agent import ask_agent
-            response = ask_agent(st.session_state.agent_executor, agent_query)
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, agent_query))
             
         try:
             # Extract JSON from agent response
@@ -702,6 +703,29 @@ def tab_company():
         st.write(info.get("work_life", "N/A"))
         if info.get("website"):
             st.link_button("🌐 Visit Careers Page", url=info["website"])
+
+# ---------------------------------------------------------------------------
+# Tab: LinkedIn Profile Analyzer
+# ---------------------------------------------------------------------------
+def tab_linkedin():
+    st.markdown("## 👤 LinkedIn Profile Analyzer")
+    st.caption("AI-powered summary of any LinkedIn profile using RapidAPI's extractor tool.")
+
+    selected_url = st.text_input("Enter a LinkedIn Profile URL (e.g., https://www.linkedin.com/in/satyanadella)")
+
+    if selected_url:
+        err = load_agent()
+        if err:
+            st.error(f"❌ {err}")
+            return
+
+        agent_query = f"Please extract the LinkedIn profile context for '{selected_url}' and summarize their top skills, experience, and educational background beautifully. Make sure to append the RAW JSON API data at the bottom of your response."
+
+        with st.spinner("Agent is scanning LinkedIn profile…"):
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, agent_query))
+            
+        st.markdown(response)
 
 # ---------------------------------------------------------------------------
 # Tab: About / How to Use
@@ -777,8 +801,8 @@ def tab_intelligence():
         agent_query = f"Analysis of current hiring trends in {city} for tech roles."
         
         with st.spinner(f"Agent is analyzing {city} market…"):
-            from agent import ask_agent
-            response = ask_agent(st.session_state.agent_executor, agent_query)
+            from agent import ask_agent_async
+            response = asyncio.run(ask_agent_async(st.session_state.agent_executor, agent_query))
             
         st.markdown(f"### Reasoning for {city}")
         st.info(response)
@@ -789,11 +813,12 @@ def tab_intelligence():
 def main():
     filters = render_sidebar()
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "💬 Chat",
         "💼 Job Listings",
         "💾 Saved Jobs",
         "🏢 Company",
+        "👤 LinkedIn Profile",
         "📈 Intelligence",
         "ℹ️ About",
     ])
@@ -807,8 +832,10 @@ def main():
     with tab4:
         tab_company()
     with tab5:
-        tab_intelligence()
+        tab_linkedin()
     with tab6:
+        tab_intelligence()
+    with tab7:
         tab_about()
 
 

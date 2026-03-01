@@ -1,15 +1,13 @@
 # agent.py
-# Sets up the LangChain agent with Gemini as the LLM
-# Uses two tools: job search (Adzuna API) and company info lookup
+# Implements a linear, deterministic AI pipeline to eliminate API looping and quota issues.
 
 import os
+import json
 from dotenv import load_dotenv
 
-# NOTE: langchain 1.x moved AgentExecutor to langchain_classic
-from langchain_classic.agents import AgentExecutor, create_react_agent
-from langchain_classic.memory import ConversationBufferWindowMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from tools.job_search import search_jobs_tool
 from tools.company_info import company_info_tool
@@ -18,87 +16,135 @@ from tools.linkedin_tool import linkedin_profile_tool
 
 load_dotenv()
 
+class LinearCareerAgent:
+    def __init__(self):
+        self.api_key = os.getenv("GOOGLE_API_KEY", "")
+        if not self.api_key:
+            raise EnvironmentError("GOOGLE_API_KEY is missing. Please add it to your environment variables.")
+
+        # Main summarizer LLM
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=self.api_key,
+            temperature=0.3,
+        )
+
+        # Fast router LLM
+        self.router_llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=self.api_key,
+            temperature=0.0,
+        )
+
+    async def ask(self, user_query: str, chat_history: list = None) -> str:
+        """
+        The main linear pipeline: Route -> Fetch (Optional) -> Summarize
+        """
+        try:
+            # Step 1: Route the query
+            intent, extraction_arg = await self._route_query(user_query)
+
+            # Step 2: Fetch raw data exactly once based on intent
+            raw_data = ""
+            if intent == "job_search":
+                raw_data = await search_jobs_tool.ainvoke(extraction_arg)
+            elif intent == "company_info":
+                raw_data = await company_info_tool.ainvoke(extraction_arg)
+            elif intent == "linkedin_profile":
+                raw_data = await linkedin_profile_tool.ainvoke(extraction_arg)
+            elif intent == "market_trends":
+                raw_data = await market_trends_tool.ainvoke(extraction_arg)
+
+            # Step 3: Summarize and respond
+            return await self._generate_final_response(user_query, intent, raw_data, chat_history)
+
+        except Exception as e:
+            return f"⚠️ Something went wrong in the async pipeline: {e}"
+
+    async def _route_query(self, query: str):
+        """
+        Deterministically decides which tool to use.
+        Returns: Tuple(intent_name, argument_for_tool)
+        """
+        routing_prompt = f"""
+        You are a smart router for a career application.
+        Analyze the user's query and decide which specific tool to use.
+        
+        Available tools:
+        - job_search: For finding actual job listings. You MUST extract a JSON representing the filter criteria, e.g '{{"title": "python", "location": "Bangalore"}}'. If the user provides a raw JSON string of filters, just output that exact JSON string.
+        - company_info: For researching a specific company. Arg: The company name.
+        - linkedin_profile: For summarizing a specific person's linkedin URL. Arg: The URL.
+        - market_trends: For general knowledge about hiring. Arg: The local market/city.
+        - none: For general chit-chat. Arg: none.
+
+        Query: "{query}"
+        
+        Output strictly in this format: INTENT | ARGUMENT
+        Example 1: job_search | {{"title": "developer", "location": "mumbai"}}
+        Example 2: company_info | TCS
+        Example 3: linkedin_profile | https://www.linkedin.com/in/billgates
+        Example 4: none | none
+        """
+        
+        route_decision = await self.router_llm.ainvoke(routing_prompt)
+        route_text = route_decision.content.strip()
+        
+        try:
+            intent, arg = route_text.split(" | ")
+            return intent.strip(), arg.strip()
+        except Exception:
+            # Fallback
+            return "none", "none"
+
+    async def _generate_final_response(self, query: str, intent: str, raw_data: str, chat_history: list) -> str:
+        """
+        Takes the raw data and the user query, and generates a warm, final response.
+        """
+        system_instructions = """
+        You are CareerBot, your friendly and proactive career companion. You specialize in the Indian job market.
+        
+        Guidelines:
+        1. Warm & Natural: Speak like a trusted mentor.
+        2. Indian Market Expert: Always mention salary in LPA (Lakhs Per Annum). 1 LPA = 1,00,000 INR per year.
+        3. Structured formatting: If you receive RAW JSON data, you MUST include that RAW JSON data exactly as provided somewhere in your response (usually at the very bottom) so the UI can parse it into cards. Do not omit the JSON if it is provided.
+        """
+
+        prompt = f"""
+        User Query: {query}
+        Intent Detected: {intent}
+        Raw Data from API: 
+        {raw_data if raw_data else 'No extra API data pulled for this query.'}
+        
+        Please provide a helpful, warm response to the user based on the raw data above.
+        If the intent is a job search or company info, ensure you append the RAW API JSON Data to your response so the frontend can render it visually.
+        """
+
+        messages = [SystemMessage(content=system_instructions)]
+        
+        if chat_history:
+            # We assume chat_history is a list of dicts: [{'role': 'user', 'content': 'hi'}]
+            # We'll truncate to last 4 for context window safety
+            for msg in chat_history[-4:]:
+                if msg.get('role') == 'user':
+                    messages.append(HumanMessage(content=msg.get('content', '')))
+                else:
+                    # assistant
+                    messages.append(SystemMessage(content=msg.get('content', '')))
+                    
+        messages.append(HumanMessage(content=prompt))
+
+        response = await self.llm.ainvoke(messages)
+        return response.content
 
 def build_agent(memory=None):
-    """Build the LangChain ReAct agent. Returns (executor, memory)."""
+    """
+    Adapter function to maintain compatibility with app.py.
+    Returns the linear agent instance.
+    """
+    return LinearCareerAgent(), memory
 
-    api_key = os.getenv("GOOGLE_API_KEY", "")
-    if not api_key:
-        raise EnvironmentError(
-            "GOOGLE_API_KEY is missing. Please add it to your .env file."
-        )
-
-    # Using Gemini 2.5 Flash since it's fast enough for this use case
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        google_api_key=api_key,
-        temperature=0.3,
-        convert_system_message_to_human=True,
-    )
-
-    tools = [search_jobs_tool, company_info_tool, market_trends_tool, linkedin_profile_tool]
-
-    # Custom prompt for Indian job market context
-    prompt = PromptTemplate.from_template(
-        """You are CareerBot, your friendly and proactive career companion. You specialize in the Indian job market and are here to help users navigate their professional journey with clarity, heart, and confidence.
-
-You're not just a script; you're the brain and heart of this experience. Whether it's finding the perfect role, researching a dream company, or providing strategic market advice, you approach every task with a helpful and encouraging spirit.
-
-Guidelines for your personality:
-1. **Warm & Natural**: Speak like a trusted mentor. Use phrases like "I've found some exciting opportunities for you," or "Let's explore the story behind [Company]."
-2. **Empathetic**: Career hunting can be stressful. Use caring language like "I'm right here with you," or "This looks like a great step forward!"
-3. **Indian Market Expert**: Always mention salary in LPA (Lakhs Per Annum). 1 LPA = 1,00,000 INR per year.
-4. **Local Knowledge**: You know the pulse of Bangalore, Mumbai, Hyderabad, Pune, Delhi/NCR, and Chennai.
-5. **Structured when needed**: If a user is in a specific search tab (Jobs, Company, Profile), use your tools and include the RAW JSON string so the UI can present it.
-6. **Proactive LinkedIn Summaries**: When asked about a person, use the `linkedin_profile_tool` to fetch their raw profile data, then present a warm, structured summary of their top skills and experience.
-7. **Proactive**: If an answer feels short, add a supportive tip like "Would you like me to look at similar roles?"
-
-Tools available:
-{tools}
-
-Tool names: {tool_names}
-
-Format:
-Question: the user question
-Thought: what should I do
-Action: one of [{tool_names}]
-Action Input: input to the action
-Observation: result
-... (repeat as needed)
-Thought: I have enough info now
-Final Answer: answer to the user. (If search results were found, include the raw JSON data in your answer)
-
-Chat history so far:
-{chat_history}
-
-Question: {input}
-Thought: {agent_scratchpad}"""
-    )
-
-    if memory is None:
-        memory = ConversationBufferWindowMemory(
-            memory_key="chat_history",
-            k=6,
-            return_messages=False,
-        )
-
-    agent = create_react_agent(llm=llm, tools=tools, prompt=prompt)
-    executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        memory=memory,
-        verbose=False,
-        handle_parsing_errors=True,
-        max_iterations=5,
-        max_execution_time=45,
-    )
-    return executor, memory
-
-
-def ask_agent(executor, question: str) -> str:
-    """Run a question through the agent and return the response text."""
-    try:
-        result = executor.invoke({"input": question})
-        return result.get("output", "Sorry, I couldn't process that. Please try again.")
-    except Exception as e:
-        return f"⚠️ Something went wrong: {e}\n\nTip: Check that your GOOGLE_API_KEY is correct."
+async def ask_agent_async(agent_instance, question: str, chat_history: list = None) -> str:
+    """
+    Adapter function to trigger the async pipeline.
+    """
+    return await agent_instance.ask(question, chat_history)
