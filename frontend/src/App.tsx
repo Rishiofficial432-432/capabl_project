@@ -476,14 +476,14 @@ function JobCard({ job, isSaved, fetchSaved }: { job: Job, isSaved?: boolean, fe
             onClick={deleteSaved}
             className="flex-1 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2"
           >
-            <Trash2 size={16} /> Delete
+            <Trash2 size={16} /> Remove
           </button>
         ) : (
           <button
             onClick={saveJob}
             className="flex-1 bg-white/5 border border-white/10 hover:border-purple-500/30 hover:bg-white/10 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest"
           >
-            Archive
+            Keep for Later
           </button>
         )}
         <a
@@ -492,7 +492,7 @@ function JobCard({ job, isSaved, fetchSaved }: { job: Job, isSaved?: boolean, fe
           rel="noopener"
           className="flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:to-pink-500 py-4 rounded-2xl transition-all font-black text-center text-[10px] uppercase tracking-widest shadow-xl shadow-purple-600/30 text-white flex items-center justify-center gap-2"
         >
-          Details <ExternalLink size={14} />
+          Explore <ExternalLink size={14} />
         </a>
       </div>
     </motion.div>
