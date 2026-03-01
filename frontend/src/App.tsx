@@ -70,6 +70,13 @@ function App() {
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }, []);
+
   useEffect(() => {
     if (activeTab === 'saved') fetchSavedJobs();
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -178,6 +185,7 @@ function App() {
               <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-[0_0_50px_rgba(168,85,247,0.4)] mx-auto mb-10">
                 <Sparkles className="text-white w-12 h-12" />
               </div>
+              <p className="text-purple-400 font-bold uppercase tracking-[0.2em] mb-4">{greeting}, seeker.</p>
               <h1 className="text-7xl md:text-9xl font-black tracking-tighter bg-gradient-to-b from-white via-white to-white/20 bg-clip-text text-transparent mb-4">
                 CAREERBOT
               </h1>
