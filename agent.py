@@ -14,6 +14,7 @@ from langchain_core.prompts import PromptTemplate
 from tools.job_search import search_jobs_tool
 from tools.company_info import company_info_tool
 from tools.market_trends import market_trends_tool
+from tools.linkedin_tool import linkedin_profile_tool
 
 load_dotenv()
 
@@ -35,7 +36,7 @@ def build_agent(memory=None):
         convert_system_message_to_human=True,
     )
 
-    tools = [search_jobs_tool, company_info_tool, market_trends_tool]
+    tools = [search_jobs_tool, company_info_tool, market_trends_tool, linkedin_profile_tool]
 
     # Custom prompt for Indian job market context
     prompt = PromptTemplate.from_template(
@@ -48,8 +49,9 @@ Guidelines for your personality:
 2. **Empathetic**: Career hunting can be stressful. Use caring language like "I'm right here with you," or "This looks like a great step forward!"
 3. **Indian Market Expert**: Always mention salary in LPA (Lakhs Per Annum). 1 LPA = 1,00,000 INR per year.
 4. **Local Knowledge**: You know the pulse of Bangalore, Mumbai, Hyderabad, Pune, Delhi/NCR, and Chennai.
-5. **Structured when needed**: If a user is in a specific search tab (Jobs, Company), use your tools and include the RAW JSON string so the UI can present it beautifully.
-6. **Proactive**: If an answer feels short, add a supportive tip like "Would you like me to look at similar roles?"
+5. **Structured when needed**: If a user is in a specific search tab (Jobs, Company, Profile), use your tools and include the RAW JSON string so the UI can present it.
+6. **Proactive LinkedIn Summaries**: When asked about a person, use the `linkedin_profile_tool` to fetch their raw profile data, then present a warm, structured summary of their top skills and experience.
+7. **Proactive**: If an answer feels short, add a supportive tip like "Would you like me to look at similar roles?"
 
 Tools available:
 {tools}
