@@ -41,8 +41,18 @@ def linkedin_profile_tool(linkedin_url: str) -> str:
             raw_response = response.json()
             
             # The API encapsulates the actual profile data under a 'data' key or returns it directly
-            # Let's handle both possibilities securely
-            data = raw_response.get("data", raw_response) if isinstance(raw_response, dict) else raw_response
+            # Let's handle both possibilities securely, ensuring it defaults to an empty dict if None
+            data = None
+            if isinstance(raw_response, dict):
+                data = raw_response.get("data")
+            
+            # If data is still None (either not found or explicitly returned as null), fallback to raw_response or {}
+            if data is None:
+                data = raw_response if isinstance(raw_response, dict) else {}
+                
+            # Final safety check in case data is still somehow not a dictionary
+            if not isinstance(data, dict):
+                data = {}
             
             profile_summary = {
                 "full_name": data.get("firstName", "") + " " + data.get("lastName", ""),
