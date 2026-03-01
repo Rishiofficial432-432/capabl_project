@@ -26,7 +26,7 @@ class LinearCareerAgent:
 
         # Main summarizer LLM
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             google_api_key=self.api_key,
             temperature=0.3,
         )
@@ -70,10 +70,10 @@ class LinearCareerAgent:
             elif intent == "linkedin_profile":
                 if self.composio_sdk:
                     try:
-                        # Try to execute directly. We wrap in to_thread because sdk.execute is sync.
-                        # Common LinkedIn slugs: 'linkedin_get_profile', 'linkedin_profile'
+                        # Try to execute directly. 
+                        # execute is a method of the tools object
                         response = await asyncio.to_thread(
-                            self.composio_sdk.execute,
+                            self.composio_sdk.tools.execute,
                             slug="linkedin_get_profile",
                             arguments={"url": extraction_arg},
                             user_id="default_user"
@@ -83,7 +83,7 @@ class LinearCareerAgent:
                         # Fallback attempt if slug is slightly different
                         try:
                             response = await asyncio.to_thread(
-                                self.composio_sdk.execute,
+                                self.composio_sdk.tools.execute,
                                 slug="linkedin_profile",
                                 arguments={"url": extraction_arg},
                                 user_id="default_user"
