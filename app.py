@@ -36,33 +36,27 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #8b5cf6;
-    --primary-glow: rgba(139, 92, 246, 0.4);
-    --secondary: #3b82f6;
-    --accent: #10b981;
-    --bg-dark: #0f172a;
-    --card-bg: rgba(255, 255, 255, 0.04);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
+    --primary: #ffffff;
+    --primary-glow: rgba(255, 255, 255, 0.2);
+    --secondary: #cccccc;
+    --accent: #ffffff;
+    --bg-dark: #000000;
+    --card-bg: #0a0a0a;
+    --card-border: #1a1a1a;
+    --text-main: #ffffff;
+    --text-muted: #888888;
 }
 
-html, body, [class*="css"] {
+html, body, [class*="css"], .stApp {
     font-family: 'Outfit', 'Inter', sans-serif;
-}
-
-/* Deep immersive gradient background */
-.stApp {
-    background: radial-gradient(circle at top right, #1e1b4b, #0f172a 40%),
-                radial-gradient(circle at bottom left, #1e293b, #0f172a 40%);
-    background-attachment: fixed;
+    background-color: #000000 !important;
+    background-image: none !important;
     color: var(--text-main);
 }
 
 /* Glassmorphism containers */
 [data-testid="stSidebar"] {
-    background: rgba(15, 23, 42, 0.6) !important;
-    backdrop-filter: blur(20px);
+    background-color: #050505 !important;
     border-right: 1px solid var(--card-border);
 }
 
@@ -76,11 +70,8 @@ html, body, [class*="css"] {
     font-size: 3.5rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #c084fc 0%, #6366f1 50%, #38bdf8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
     margin-bottom: 0.5rem;
-    text-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
 }
 .main-header p {
     color: var(--text-muted);
@@ -92,44 +83,59 @@ html, body, [class*="css"] {
 
 /* Premium Job Card */
 .job-card {
-    background: var(--card-bg);
+    background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
+    border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.2rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(12px);
-    position: relative;
-    overflow: hidden;
-}
-.job-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), transparent);
-    z-index: 0;
+    transition: all 0.3s ease;
 }
 .job-card:hover {
-    border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.07);
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px var(--primary-glow);
+    transform: translateY(-2px);
+    border-color: #333333;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
 }
 .job-title {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: #e879f9;
-    margin-bottom: 0.25rem;
-    position: relative;
-    z-index: 1;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.job-company {
+.company-name {
+    color: var(--text-muted);
+    font-weight: 500;
     font-size: 1rem;
-    color: #60a5fa;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.job-meta {
+    font-size: 0.9rem;
+    color: #aaaaaa;
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--card-border);
+}
+.job-apply-btn {
+    display: inline-block;
+    background-color: #ffffff;
+    color: #000000 !important;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
     font-weight: 600;
-    margin-bottom: 0.75rem;
-    position: relative;
-    z-index: 1;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+.job-apply-btn:hover {
+    background-color: #cccccc;
+    transform: scale(1.02);
 }
 
 /* Badges */
@@ -151,22 +157,21 @@ html, body, [class*="css"] {
 
 /* Premium Chat */
 .chat-user {
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    background-color: #1a1a1a;
     border-radius: 20px 20px 4px 20px;
     padding: 1rem 1.25rem;
     margin: 0.75rem 0;
     max-width: 80%;
     margin-left: auto;
     color: white;
-    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2);
+    border: 1px solid #333333;
     font-size: 0.95rem;
     line-height: 1.5;
     animation: slideInRight 0.4s ease-out;
 }
 .chat-bot {
-    background: var(--card-bg);
+    background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    backdrop-filter: blur(10px);
     border-radius: 20px 20px 20px 4px;
     padding: 1rem 1.25rem;
     margin: 0.75rem 0;
@@ -177,40 +182,36 @@ html, body, [class*="css"] {
     animation: slideInLeft 0.4s ease-out;
 }
 
-/* Generic Metric Box */
 .metric-box {
-    background: var(--card-bg);
+    background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
+    border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
     transition: all 0.3s ease;
 }
 .metric-box:hover {
-    border-color: var(--primary);
-    background: rgba(255, 255, 255, 0.08);
+    border-color: #444444;
 }
 .metric-box .metric-val {
     font-size: 2.2rem;
     font-weight: 800;
-    color: var(--primary);
-    text-shadow: 0 0 15px var(--primary-glow);
+    color: #ffffff;
 }
 
 /* UI Elements */
 .stButton > button {
-    background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%) !important;
-    color: white !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     border: none !important;
     padding: 0.6rem 2rem !important;
-    border-radius: 12px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
 }
 .stButton > button:hover {
-    transform: scale(1.05) translateY(-2px) !important;
-    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4) !important;
+    background-color: #cccccc !important;
+    color: #000000 !important;
 }
 
 /* Animations */
@@ -234,9 +235,9 @@ header { visibility: hidden; }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-track { background-color: #000000; }
 ::-webkit-scrollbar-thumb { 
-    background: linear-gradient(var(--primary), var(--secondary));
+    background-color: #333333;
     border-radius: 10px;
 }
 </style>

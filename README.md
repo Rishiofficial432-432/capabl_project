@@ -3,7 +3,8 @@ title: CareerBot
 emoji: 🤖
 colorFrom: purple
 colorTo: indigo
-sdk: docker
+sdk: streamlit
+app_file: app.py
 pinned: false
 ---
 
