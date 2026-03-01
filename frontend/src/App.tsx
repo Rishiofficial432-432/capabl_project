@@ -53,7 +53,7 @@ interface CompanyInfo {
   message?: string;
 }
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api';
 
 function App() {
   const [hasStarted, setHasStarted] = useState(false);

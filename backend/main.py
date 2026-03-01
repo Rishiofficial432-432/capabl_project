@@ -1,7 +1,9 @@
 import os
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -46,34 +48,59 @@ class ChatRequest(BaseModel):
 class SaveJobRequest(BaseModel):
     job: dict
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"status": "CareerBot API is live", "market": "India"}
 
-@app.post("/chat")
+@app.post("/api/chat")
 async def chat(request: ChatRequest):
     try:
         executor = get_agent()
-        # Enforce the same 'build_query' logic from app.py here if needed, 
-        # or handle it in the frontend. We'll pass the message directly for now.
         response = ask_agent(executor, request.message)
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/jobs/saved")
+@app.get("/api/jobs/saved")
 async def get_saved_jobs():
     return db.get_saved_jobs()
 
-@app.post("/jobs/save")
+@app.post("/api/jobs/save")
 async def save_job(request: SaveJobRequest):
     ok = db.save_job(request.job)
     return {"success": ok}
 
-@app.delete("/jobs/saved/{job_id}")
+@app.delete("/api/jobs/saved/{job_id}")
 async def delete_job(job_id: int):
     db.delete_saved_job(job_id)
     return {"success": True}
+
+# Serve React Frontend
+# In Docker, the built files will be in /app/frontend/dist
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+if not os.path.exists(frontend_path):
+    # Fallback if running directly from backend folder
+    frontend_path = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+
+if os.path.exists(frontend_path):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
+    
+    # Catch-all route to serve index.html for SPA rendering
+    @app.get("/{full_path:path}")
+    async def serve_react_app(request: Request, full_path: str):
+        # Don't intercept /api/ calls if somehow they reach here
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        
+        # Check if the requested file exists in the dist root (like vite.svg, favicon, etc)
+        file_path = os.path.join(frontend_path, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
+        # Default to index.html for all other routes
+        return FileResponse(os.path.join(frontend_path, "index.html"))
+else:
+    print(f"Warning: Frontend build folder not found at {frontend_path}. Frontend will not be served.")
 
 if __name__ == "__main__":
     import uvicorn
