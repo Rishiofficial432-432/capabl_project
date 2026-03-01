@@ -12,7 +12,9 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from tools.job_search import search_jobs_tool
 from tools.company_info import company_info_tool
 from tools.market_trends import market_trends_tool
-from tools.linkedin_tool import linkedin_profile_tool
+
+from composio_langchain import LangchainProvider
+from composio.client.enums import Action
 
 load_dotenv()
 
@@ -36,6 +38,19 @@ class LinearCareerAgent:
             temperature=0.0,
         )
 
+        # Init Composio
+        composio_api_key = os.getenv("COMPOSIO_API_KEY")
+        if composio_api_key:
+            try:
+                # Newer versions of composio-langchain use LangchainProvider
+                self.composio_provider = LangchainProvider(api_key=composio_api_key)
+                self.linkedin_tools = self.composio_provider.get_tools(actions=[Action.LINKEDIN_GET_PROFILE])
+            except Exception as e:
+                print(f"Composio init error: {e}")
+                self.linkedin_tools = None
+        else:
+            self.linkedin_tools = None
+
     async def ask(self, user_query: str, chat_history: list = None) -> str:
         """
         The main linear pipeline: Route -> Fetch (Optional) -> Summarize
@@ -51,7 +66,14 @@ class LinearCareerAgent:
             elif intent == "company_info":
                 raw_data = await company_info_tool.ainvoke(extraction_arg)
             elif intent == "linkedin_profile":
-                raw_data = await linkedin_profile_tool.ainvoke(extraction_arg)
+                if self.linkedin_tools:
+                    # Composio returns a list of tools, we want the first one (GET_PROFILE)
+                    profile_tool = self.linkedin_tools[0]
+                    # Composio expects a specific payload format depending on the action schema
+                    # For a profile URL, we pass it under the 'url' arg or let ainovke handle it if it expects a dict
+                    raw_data = await profile_tool.ainvoke({"url": extraction_arg, "username": extraction_arg})
+                else:
+                    raw_data = '{"error": "COMPOSIO_API_KEY is not configured in environment variables."}'
             elif intent == "market_trends":
                 raw_data = await market_trends_tool.ainvoke(extraction_arg)
 
