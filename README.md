@@ -1,3 +1,12 @@
+---
+title: CareerBot
+emoji: 🤖
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # CareerBot – AI Job Search Assistant (India) 🤖
 
 An AI-powered job search tool built for the Indian market. Made with Streamlit + LangChain + Google Gemini as part of our college project (Track A, Week 1–2).
