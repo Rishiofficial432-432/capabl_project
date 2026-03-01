@@ -13,8 +13,8 @@ from tools.job_search import search_jobs_tool
 from tools.company_info import company_info_tool
 from tools.market_trends import market_trends_tool
 
-from composio_langchain import LangchainProvider
 from composio import Composio
+import asyncio
 
 load_dotenv()
 
@@ -44,26 +44,14 @@ class LinearCareerAgent:
         if composio_api_key:
             composio_api_key = composio_api_key.strip()
             try:
-                # Pass the provider to the SDK constructor so tools come out already wrapped
-                self.langchain_provider = LangchainProvider()
-                self.composio_sdk = Composio(api_key=composio_api_key, provider=self.langchain_provider)
-                
-                # Fetch all tools for the LinkedIn app. They will be returned as Langchain StructuredTools.
-                self.linkedin_tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin"])
-                
-                if not self.linkedin_tools:
-                    # Try alternate toolkit names if 'linkedin' didn't work
-                    self.linkedin_tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin_profile"])
-                
-                if not self.linkedin_tools:
-                    available_toolkits = [t.slug for t in self.composio_sdk.toolkits.get()]
-                    raise RuntimeError(f"No tools found for toolkit 'linkedin'. Available: {available_toolkits[:5]}...")
+                # Direct SDK initialization 
+                self.composio_sdk = Composio(api_key=composio_api_key)
             except Exception as e:
                 self.composio_error = f"Composio initialization error: {str(e)}"
-                self.linkedin_tools = None
+                self.composio_sdk = None
         else:
             self.composio_error = "COMPOSIO_API_KEY is not configured in Hugging Face Space Secrets."
-            self.linkedin_tools = None
+            self.composio_sdk = None
 
     async def ask(self, user_query: str, chat_history: list = None) -> str:
         """
@@ -80,14 +68,31 @@ class LinearCareerAgent:
             elif intent == "company_info":
                 raw_data = await company_info_tool.ainvoke(extraction_arg)
             elif intent == "linkedin_profile":
-                if self.linkedin_tools:
-                    # Composio returns a list of tools, we want the first one (GET_PROFILE)
-                    profile_tool = self.linkedin_tools[0]
-                    # Composio expects a specific payload format depending on the action schema
-                    # For a profile URL, we pass it under the 'url' arg or let ainovke handle it if it expects a dict
-                    raw_data = await profile_tool.ainvoke({"url": extraction_arg, "username": extraction_arg})
+                if self.composio_sdk:
+                    try:
+                        # Try to execute directly. We wrap in to_thread because sdk.execute is sync.
+                        # Common LinkedIn slugs: 'linkedin_get_profile', 'linkedin_profile'
+                        response = await asyncio.to_thread(
+                            self.composio_sdk.execute,
+                            slug="linkedin_get_profile",
+                            arguments={"url": extraction_arg},
+                            user_id="default_user"
+                        )
+                        raw_data = json.dumps(response)
+                    except Exception as e:
+                        # Fallback attempt if slug is slightly different
+                        try:
+                            response = await asyncio.to_thread(
+                                self.composio_sdk.execute,
+                                slug="linkedin_profile",
+                                arguments={"url": extraction_arg},
+                                user_id="default_user"
+                            )
+                            raw_data = json.dumps(response)
+                        except:
+                            raw_data = json.dumps({"error": f"LinkedIn Direct Execution failed: {str(e)}"})
                 else:
-                    raw_data = json.dumps({"error": self.composio_error or "Unknown Composio error"})
+                    raw_data = json.dumps({"error": self.composio_error or "Composio SDK not initialized"})
             elif intent == "market_trends":
                 raw_data = await market_trends_tool.ainvoke(extraction_arg)
 
