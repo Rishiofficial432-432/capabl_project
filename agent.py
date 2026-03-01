@@ -42,6 +42,7 @@ class LinearCareerAgent:
         self.composio_error = None
         composio_api_key = os.getenv("COMPOSIO_API_KEY")
         if composio_api_key:
+            composio_api_key = composio_api_key.strip()
             try:
                 # Direct SDK initialization is more stable than high-level wrappers
                 self.composio_sdk = Composio(api_key=composio_api_key)
