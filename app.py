@@ -231,7 +231,6 @@ html, body, [class*="css"], .stApp {
 /* Hide Streamlit components */
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
-header { visibility: hidden; }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
