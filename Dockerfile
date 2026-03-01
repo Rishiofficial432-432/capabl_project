@@ -19,8 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source code including tools
-COPY agent.py database.py main.py utils.py ./
+# Copy shared root files and the backend folder
+COPY agent.py database.py utils.py ./
+COPY backend ./backend
 COPY tools ./tools
 
 # Copy the built React app from the first stage
@@ -31,4 +32,4 @@ EXPOSE 7860
 
 # Run FastAPI server
 # Since this is a container, we bind to 0.0.0.0 and port 7860
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "7860"]
