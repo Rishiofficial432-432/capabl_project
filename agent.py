@@ -14,7 +14,15 @@ from tools.company_info import company_info_tool
 from tools.market_trends import market_trends_tool
 
 from composio_langchain import LangchainProvider
-from composio.client.enums import Action
+
+try:
+    from composio.client.enums import Action
+except ImportError:
+    try:
+        from composio import Action
+    except ImportError:
+        # Fallback for older or newer versions if paths change
+        Action = None
 
 load_dotenv()
 
