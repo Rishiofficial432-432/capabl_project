@@ -48,9 +48,18 @@ class LinearCareerAgent:
                 self.composio_sdk = Composio(api_key=composio_api_key)
                 self.langchain_provider = LangchainProvider()
                 
-                # Fetch LinkedIn tool by string slug to avoid Enum import issues
-                tools = self.composio_sdk.tools.get(user_id="default_user", tools=["linkedin_get_profile"])
+                # Fetch all tools for the LinkedIn app to find the correct one dynamically
+                # This is more robust than guessing the slug string
+                tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin"])
                 
+                if not tools:
+                    # Try alternate toolkit names if 'linkedin' didn't work
+                    tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin_profile"])
+                
+                if not tools:
+                    available_toolkits = [t.slug for t in self.composio_sdk.toolkits.get()]
+                    raise RuntimeError(f"No tools found for toolkit 'linkedin'. Available: {available_toolkits[:5]}...")
+
                 # Wrap tools for Langchain
                 self.linkedin_tools = self.langchain_provider.wrap_tools(
                     tools=tools,
