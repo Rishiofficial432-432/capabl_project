@@ -234,14 +234,14 @@ function App() {
             <main className="flex-1 h-full overflow-hidden relative flex flex-col bg-slate-950/20">
               <header className="h-20 flex items-center justify-between px-10 border-b border-white/5 backdrop-blur-md z-10 bg-black/20">
                 <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em]">
-                  {activeTab === 'chat' && 'Conversational Partner'}
-                  {activeTab === 'jobs' && 'Global Job Explorer'}
-                  {activeTab === 'saved' && 'Your Bookmarked Future'}
-                  {activeTab === 'company' && 'Inside Insights'}
-                  {activeTab === 'intel' && 'Market Pulse'}
+                  {activeTab === 'chat' && 'Your Career Partner'}
+                  {activeTab === 'jobs' && 'Job Explorer'}
+                  {activeTab === 'saved' && 'My Saved Future'}
+                  {activeTab === 'company' && 'Company Stories'}
+                  {activeTab === 'intel' && 'The Hiring World'}
                 </h2>
                 {loading && <div className="flex items-center gap-2 text-purple-400 text-xs font-bold animate-pulse">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> THINKING...
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> SCANNING THE GLOBE FOR YOU...
                 </div>}
               </header>
 
