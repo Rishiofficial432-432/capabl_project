@@ -593,7 +593,7 @@ def tab_jobs(filters: dict):
             render_job_card(job, i)
         
         if not jobs:
-            st.info("Agent is currently warming up. Try a manual search above!")
+            st.info("No jobs found for this exact query. Try a different search above, or wait a minute if you just hit the API speed limit!")
 
 # ---------------------------------------------------------------------------
 # Tab: Saved Jobs
