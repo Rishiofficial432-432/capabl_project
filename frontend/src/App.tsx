@@ -59,7 +59,7 @@ function App() {
   const [hasStarted, setHasStarted] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'bot', content: "🚀 **Welcome to CareerBot!** I'm your AI recruiter fetching live data from Adzuna and other sources. How can I help you today?" }
+    { role: 'bot', content: "👋 **Hi there! I'm CareerBot.** I've just powered up my global search engines to help you find your dream role. What's on your mind today?" }
   ]);
   const [input, setInput] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -93,7 +93,7 @@ function App() {
       const res = await axios.post(`${API_BASE}/chat`, { message: input });
       setMessages(prev => [...prev, { role: 'bot', content: res.data.response }]);
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'bot', content: "⚠️ Connection error. Is the backend running at port 8000?" }]);
+      setMessages(prev => [...prev, { role: 'bot', content: "😓 I'm having a little trouble connecting to my brain. Is the backend running on port 8000?" }]);
     } finally {
       setLoading(false);
     }
@@ -234,14 +234,14 @@ function App() {
             <main className="flex-1 h-full overflow-hidden relative flex flex-col bg-slate-950/20">
               <header className="h-20 flex items-center justify-between px-10 border-b border-white/5 backdrop-blur-md z-10 bg-black/20">
                 <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.3em]">
-                  {activeTab === 'chat' && 'Neural Assistant Core'}
-                  {activeTab === 'jobs' && 'Multi-API Job Engine'}
-                  {activeTab === 'saved' && 'Personal Archives'}
-                  {activeTab === 'company' && 'Corporate Intelligence'}
-                  {activeTab === 'intel' && 'Market Strategic Data'}
+                  {activeTab === 'chat' && 'Conversational Partner'}
+                  {activeTab === 'jobs' && 'Global Job Explorer'}
+                  {activeTab === 'saved' && 'Your Bookmarked Future'}
+                  {activeTab === 'company' && 'Inside Insights'}
+                  {activeTab === 'intel' && 'Market Pulse'}
                 </h2>
                 {loading && <div className="flex items-center gap-2 text-purple-400 text-xs font-bold animate-pulse">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> PROCESSING...
+                  <div className="w-2 h-2 bg-purple-500 rounded-full" /> THINKING...
                 </div>}
               </header>
 
@@ -278,7 +278,7 @@ function App() {
                         <div className="glass rounded-[2rem] p-2 flex items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-white/10 ring-1 ring-white/5">
                           <input
                             className="flex-1 bg-transparent border-none outline-none px-6 text-white text-lg h-14 placeholder:text-slate-600 font-medium"
-                            placeholder="Ask about companies, salaries, or find a job..."
+                            placeholder="Ask me anything about your career journey..."
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             onKeyPress={e => e.key === 'Enter' && sendMessage()}
@@ -300,7 +300,7 @@ function App() {
                         <Search className="ml-6 text-slate-500" />
                         <input
                           className="flex-1 bg-transparent border-none outline-none px-6 py-4 text-white text-lg h-14 font-medium"
-                          placeholder="What role are you looking for? (e.g. Senior Frontend Engineer)"
+                          placeholder="What role would you love next? (e.g. Creative Lead)"
                           onKeyPress={e => {
                             if (e.key === 'Enter') handleJobSearch((e.target as HTMLInputElement).value);
                           }}
@@ -338,7 +338,7 @@ function App() {
                         <Building2 className="ml-6 text-slate-500" />
                         <input
                           className="flex-1 bg-transparent border-none outline-none px-6 py-4 text-white text-lg h-14 font-medium"
-                          placeholder="Enter company name (e.g. TCS, Flipkart, Google)..."
+                          placeholder="Which company should we peek into?"
                           onKeyPress={e => {
                             if (e.key === 'Enter') handleCompanyResearch((e.target as HTMLInputElement).value);
                           }}
