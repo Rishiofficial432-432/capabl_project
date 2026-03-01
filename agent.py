@@ -44,27 +44,20 @@ class LinearCareerAgent:
         if composio_api_key:
             composio_api_key = composio_api_key.strip()
             try:
-                # Direct SDK initialization is more stable than high-level wrappers
-                self.composio_sdk = Composio(api_key=composio_api_key)
+                # Pass the provider to the SDK constructor so tools come out already wrapped
                 self.langchain_provider = LangchainProvider()
+                self.composio_sdk = Composio(api_key=composio_api_key, provider=self.langchain_provider)
                 
-                # Fetch all tools for the LinkedIn app to find the correct one dynamically
-                # This is more robust than guessing the slug string
-                tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin"])
+                # Fetch all tools for the LinkedIn app. They will be returned as Langchain StructuredTools.
+                self.linkedin_tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin"])
                 
-                if not tools:
+                if not self.linkedin_tools:
                     # Try alternate toolkit names if 'linkedin' didn't work
-                    tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin_profile"])
+                    self.linkedin_tools = self.composio_sdk.tools.get(user_id="default_user", toolkits=["linkedin_profile"])
                 
-                if not tools:
+                if not self.linkedin_tools:
                     available_toolkits = [t.slug for t in self.composio_sdk.toolkits.get()]
                     raise RuntimeError(f"No tools found for toolkit 'linkedin'. Available: {available_toolkits[:5]}...")
-
-                # Wrap tools for Langchain
-                self.linkedin_tools = self.langchain_provider.wrap_tools(
-                    tools=tools,
-                    execute_tool=self.composio_sdk.tools.execute
-                )
             except Exception as e:
                 self.composio_error = f"Composio initialization error: {str(e)}"
                 self.linkedin_tools = None
