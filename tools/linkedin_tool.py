@@ -38,10 +38,11 @@ def linkedin_profile_tool(linkedin_url: str) -> str:
         response = requests.get(api_endpoint, params=params, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            data = response.json()
+            raw_response = response.json()
             
-            # The API might encapsulate the data under a distinct key. Try to flatten.
-            # Assuming the standard structure for this specific rapidapi provider.
+            # The API encapsulates the actual profile data under a 'data' key or returns it directly
+            # Let's handle both possibilities securely
+            data = raw_response.get("data", raw_response) if isinstance(raw_response, dict) else raw_response
             
             profile_summary = {
                 "full_name": data.get("firstName", "") + " " + data.get("lastName", ""),
@@ -54,8 +55,9 @@ def linkedin_profile_tool(linkedin_url: str) -> str:
                 "projects": [],
             }
             
-            # Extract up to top 5 experiences for deep analysis
-            for exp in data.get("experience", [])[:5]:
+            # For experiences, check both 'experience' and 'position' keys as they vary by endpoint
+            experiences_list = data.get("experience", data.get("position", []))
+            for exp in experiences_list[:5]:
                 profile_summary["experiences"].append({
                     "companyName": exp.get("companyName"),
                     "title": exp.get("title"),
