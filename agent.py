@@ -152,15 +152,34 @@ class LinearCareerAgent:
         3. Structured formatting: If you receive RAW JSON data, you MUST include that RAW JSON data exactly as provided somewhere in your response (usually at the very bottom) so the UI can parse it into cards. Do not omit the JSON if it is provided.
         """
 
-        prompt = f"""
-        User Query: {query}
-        Intent Detected: {intent}
-        Raw Data from API: 
-        {raw_data if raw_data else 'No extra API data pulled for this query.'}
-        
-        Please provide a helpful, warm response to the user based on the raw data above.
-        If the intent is a job search or company info, ensure you append the RAW API JSON Data to your response so the frontend can render it visually.
-        """
+        if intent == "linkedin_profile":
+            prompt = f"""
+            User Query: {query}
+            Intent Detected: {intent}
+            Raw LinkedIn Data: 
+            {raw_data if raw_data else 'No data retrieved.'}
+            
+            You are acting as an expert Career Coach for the Indian Job Market.
+            Based on the LinkedIn Profile data above, provide a comprehensive analysis with these EXACT sections:
+            
+            1. **Executive Summary**: A professional 2-3 sentence overview of the person's identity and career stage.
+            2. **Plus Points (Core Strengths)**: 3-4 bullet points highlighting their unique skills, experience, and certifications.
+            3. **Minus Points (Gaps/Areas for Improvement)**: 2-3 bullet points on what's missing or how they can improve their profile for the Indian market.
+            4. **Best Job Roles**: 3 specific roles they should target (e.g. 'Senior Frontend Engineer').
+            5. **Where to Apply**: Types of companies or specific Indian companies (e.g. Zomato, Swiggy, TCS, Startups) that would value this profile.
+            
+            Ensure you mention salary expectations in **LPA (Lakhs Per Annum)**.
+            """
+        else:
+            prompt = f"""
+            User Query: {query}
+            Intent Detected: {intent}
+            Raw Data from API: 
+            {raw_data if raw_data else 'No extra API data pulled for this query.'}
+            
+            Please provide a helpful, warm response to the user based on the raw data above.
+            If the intent is a job search or company info, ensure you append the RAW API JSON Data to your response so the frontend can render it visually.
+            """
 
         messages = [SystemMessage(content=system_instructions)]
         
