@@ -1,6 +1,14 @@
 # Environment variables – NEVER commit API keys
 .env
 
+# Node / React
+node_modules/
+dist/
+dist-ssr/
+*.local
+frontend/dist/
+frontend/node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -9,8 +17,8 @@ __pycache__/
 .Python
 *.egg
 *.egg-info/
-dist/
-build/
+backend/dist/
+backend/build/
 
 # Virtual environments
 .venv/

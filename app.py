@@ -33,181 +33,212 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #8b5cf6;
+    --primary-glow: rgba(139, 92, 246, 0.4);
+    --secondary: #3b82f6;
+    --accent: #10b981;
+    --bg-dark: #0f172a;
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+}
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
 }
 
-/* Dark gradient background */
+/* Deep immersive gradient background */
 .stApp {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    color: #e8e8f0;
+    background: radial-gradient(circle at top right, #1e1b4b, #0f172a 40%),
+                radial-gradient(circle at bottom left, #1e293b, #0f172a 40%);
+    background-attachment: fixed;
+    color: var(--text-main);
 }
 
-/* Sidebar styling */
+/* Glassmorphism containers */
 [data-testid="stSidebar"] {
-    background: rgba(255,255,255,0.05);
-    border-right: 1px solid rgba(255,255,255,0.1);
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--card-border);
 }
 
-/* Header */
+/* Header Aesthetics */
 .main-header {
     text-align: center;
-    padding: 1rem 0 0.5rem;
+    padding: 2.5rem 0 1.5rem;
+    animation: fadeInDown 0.8s ease-out;
 }
 .main-header h1 {
-    font-size: 2.4rem;
-    font-weight: 700;
-    background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #c084fc 0%, #6366f1 50%, #38bdf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 0;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
 }
 .main-header p {
-    color: #94a3b8;
-    font-size: 1rem;
-    margin-top: 0.2rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-/* Job card */
+/* Premium Job Card */
 .job-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1rem;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(10px);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+}
+.job-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), transparent);
+    z-index: 0;
 }
 .job-card:hover {
-    border-color: #a78bfa;
-    background: rgba(167,139,250,0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(167,139,250,0.15);
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px var(--primary-glow);
 }
 .job-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #a78bfa;
-    margin-bottom: 0.15rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #e879f9;
+    margin-bottom: 0.25rem;
+    position: relative;
+    z-index: 1;
 }
 .job-company {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #60a5fa;
-    font-weight: 500;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
 }
-.job-meta {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-    font-size: 0.82rem;
-    color: #94a3b8;
-}
-.badge {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 20px;
-    padding: 0.15rem 0.6rem;
-    font-size: 0.78rem;
-    color: #cbd5e1;
-}
-.badge-green  { border-color: #34d399; color: #34d399; }
-.badge-blue   { border-color: #60a5fa; color: #60a5fa; }
-.badge-purple { border-color: #a78bfa; color: #a78bfa; }
-.badge-yellow { border-color: #fbbf24; color: #fbbf24; }
 
-/* Chat bubbles */
+/* Badges */
+.badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #f1f5f9;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.badge-green  { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
+.badge-blue   { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
+.badge-purple { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.3); color: #a78bfa; }
+
+/* Premium Chat */
 .chat-user {
-    background: rgba(167,139,250,0.15);
-    border: 1px solid rgba(167,139,250,0.3);
-    border-radius: 12px 12px 4px 12px;
-    padding: 0.7rem 1rem;
-    margin: 0.4rem 0;
-    max-width: 85%;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border-radius: 20px 20px 4px 20px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    max-width: 80%;
     margin-left: auto;
-    color: #e8e8f0;
-    font-size: 0.93rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    animation: slideInRight 0.4s ease-out;
 }
 .chat-bot {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px 12px 12px 4px;
-    padding: 0.7rem 1rem;
-    margin: 0.4rem 0;
-    max-width: 90%;
-    color: #e8e8f0;
-    font-size: 0.93rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(10px);
+    border-radius: 20px 20px 20px 4px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+    max-width: 85%;
+    color: var(--text-main);
+    font-size: 0.95rem;
     line-height: 1.6;
+    animation: slideInLeft 0.4s ease-out;
 }
 
-/* Metric cards */
+/* Generic Metric Box */
 .metric-box {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem;
     text-align: center;
+    transition: all 0.3s ease;
+}
+.metric-box:hover {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
 }
 .metric-box .metric-val {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #a78bfa;
-}
-.metric-box .metric-label {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin-top: 0.2rem;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* Tabs */
-.stTabs [data-baseweb="tab"] {
-    color: #94a3b8;
-    font-weight: 500;
-}
-.stTabs [aria-selected="true"] {
-    color: #a78bfa !important;
-    border-bottom: 2px solid #a78bfa !important;
-}
-
-/* Buttons */
+/* UI Elements */
 .stButton > button {
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.6rem 2rem !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 .stButton > button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    transform: scale(1.05) translateY(-2px) !important;
+    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4) !important;
 }
 
-/* Input fields */
-.stTextInput > div > div > input,
-.stSelectbox > div > div > div {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    color: #e8e8f0 !important;
-    border-radius: 8px !important;
+/* Animations */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-/* Chat input */
-.stChatInput > div {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    border-radius: 12px !important;
+/* Hide Streamlit components */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+header { visibility: hidden; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { 
+    background: linear-gradient(var(--primary), var(--secondary));
+    border-radius: 10px;
 }
-
-/* Divider */
-hr { border-color: rgba(255,255,255,0.08); }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.4); border-radius: 3px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -265,9 +296,9 @@ def render_job_card(job: dict, idx: int):
             <span class="badge">🕒 {job.get('experience', 'N/A')}</span>
             {wfh_badge}
         </div>
-        <p style="color:#cbd5e1; font-size:0.83rem; margin-top:0.6rem; margin-bottom:0.5rem;">
+        <div style="color:var(--text-muted); font-size:0.9rem; margin-top:1rem; line-height:1.5;">
             {truncate(job.get('description', ''), 200)}
-        </p>
+        </div>
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
@@ -349,13 +380,13 @@ def render_sidebar():
         with col1:
             st.markdown(
                 f'<div class="metric-box"><div class="metric-val">{len(saved)}</div>'
-                f'<div class="metric-label">Saved Jobs</div></div>',
+                f'<div class="metric-label">Saved</div></div>',
                 unsafe_allow_html=True,
             )
         with col2:
             st.markdown(
                 f'<div class="metric-box"><div class="metric-val">{len(history)}</div>'
-                f'<div class="metric-label">Searches</div></div>',
+                f'<div class="metric-label">History</div></div>',
                 unsafe_allow_html=True,
             )
 
@@ -413,12 +444,12 @@ def tab_chat(filters: dict):
     with chat_container:
         if not st.session_state.messages:
             st.markdown(
-                '<div class="chat-bot">👋 <strong>Hello!</strong> I\'m CareerBot, your AI job search assistant.<br><br>'
-                '🇮🇳 I specialise in the <strong>Indian job market</strong>. I can help you:<br>'
-                '• Find jobs by city, experience, salary (LPA), WFH preference<br>'
-                '• Research companies – culture, salary ranges, interview tips<br>'
-                '• Get career advice tailored to India\'s job market<br><br>'
-                'Try asking: <em>"Find Python developer jobs in Bangalore with 3 years experience"</em></div>',
+                '<div class="chat-bot">🚀 <strong>Welcome to CareerBot!</strong><br><br>'
+                'I\'m your high-performance AI recruiter dedicated to the <strong>Indian market</strong>. How can I help you level up today?<br><br>'
+                '• <strong>Smart Search:</strong> Find roles by city, CTC (LPA), or WFH.<br>'
+                '• <strong>Company Intel:</strong> Get the inside scoop on culture & rounds.<br>'
+                '• <strong>Strategic Advice:</strong> Tailored tips for the Indian landscape.<br><br>'
+                '<em>Try: "Find Senior React roles in Bangalore with 5+ years experience"</em></div>',
                 unsafe_allow_html=True,
             )
         for msg in st.session_state.messages:
@@ -474,7 +505,7 @@ def tab_chat(filters: dict):
 # ---------------------------------------------------------------------------
 def tab_jobs(filters: dict):
     st.markdown("## 💼 Browse Job Listings")
-    st.caption("Direct job search with filters — no LLM required.")
+    st.caption("Parallel AI Search across multiple APIs (Adzuna + Jooble Aggregator) for max coverage.")
 
     col_q, col_btn = st.columns([4, 1])
     with col_q:
@@ -487,7 +518,11 @@ def tab_jobs(filters: dict):
         search_clicked = st.button("🔍 Search", use_container_width=True)
 
     if search_clicked or keyword:
-        from tools.job_search import search_jobs_tool
+        # Load agent if not loaded
+        err = load_agent()
+        if err:
+            st.error(f"❌ {err}")
+            return
 
         query_payload = json.dumps({
             "query": keyword or "software engineer",
@@ -496,17 +531,30 @@ def tab_jobs(filters: dict):
             "salary": filters["salary"],
             "wfh": filters["wfh"],
         })
+        
+        agent_query = f"I am using the Job Listings tab. Please find jobs with these exact parameters and return the results as JSON: {query_payload}"
 
-        with st.spinner("Fetching jobs…"):
-            raw = search_jobs_tool.invoke(query_payload)
+        with st.spinner("Agent is searching the market…"):
+            from agent import ask_agent
+            response = ask_agent(st.session_state.agent_executor, agent_query)
 
         try:
-            jobs = json.loads(raw)
+            # Try to extract JSON from agent response
+            if "[{" in response:
+                start = response.index("[{")
+                end = response.rindex("}]") + 2
+                jobs_json = response[start:end]
+                jobs = json.loads(jobs_json)
+            else:
+                jobs = []
         except Exception:
             jobs = []
 
         if not jobs:
-            st.info("No jobs found. Try different keywords or filters.")
+            st.info("CareerBot couldn't find matches for those specifics. Try broader keywords.")
+            if response:
+                with st.expander("Agent Reasoning"):
+                    st.write(response)
             return
 
         st.markdown(f"### Found **{len(jobs)}** matching jobs")
@@ -518,13 +566,34 @@ def tab_jobs(filters: dict):
         db.log_search(keyword, filters, len(jobs))
 
     else:
-        # Show sample jobs on first load
-        from tools.job_search import _MOCK_JOBS
-        st.markdown("### 🔥 Featured Indian Job Listings")
-        st.caption("Use the search bar above or sidebar filters to find specific roles.")
-        st.divider()
-        for i, job in enumerate(_MOCK_JOBS[:6]):
+        st.markdown("### 🔥 Trending Indian Job Listings")
+        st.caption("AI Agent is fetching live trending data dynamically...")
+        
+        # Load agent if not loaded
+        err = load_agent()
+        if err: return
+
+        agent_query = "Fetch 6 high-quality 'Software Engineer' jobs in India as JSON."
+        
+        with st.spinner("Agent is fetching featured jobs…"):
+            from agent import ask_agent
+            response = ask_agent(st.session_state.agent_executor, agent_query)
+            
+        try:
+            if "[{" in response:
+                start = response.index("[{")
+                end = response.rindex("}]") + 2
+                jobs = json.loads(response[start:end])
+            else:
+                jobs = []
+        except Exception:
+            jobs = []
+            
+        for i, job in enumerate(jobs[:6]):
             render_job_card(job, i)
+        
+        if not jobs:
+            st.info("Agent is currently warming up. Try a manual search above!")
 
 # ---------------------------------------------------------------------------
 # Tab: Saved Jobs
@@ -560,22 +629,39 @@ def tab_saved():
 # ---------------------------------------------------------------------------
 def tab_company():
     st.markdown("## 🏢 Company Research")
-    st.caption("Look up Indian companies – culture, salaries, interview tips.")
+    st.caption("AI-powered deep research into Indian companies – culture, salaries, and interview tips.")
 
-    known_companies = [
-        "TCS", "Infosys", "Wipro", "Flipkart", "Swiggy",
-        "Zomato", "Razorpay", "Paytm", "HCL Technologies",
-    ]
+    selected = st.text_input("Enter a company name (e.g., TCS, Flipkart, Zerodha)")
 
-    selected = st.selectbox("Select a company to explore", ["Choose…"] + known_companies)
+    if selected:
+        # Load agent if not loaded
+        err = load_agent()
+        if err:
+            st.error(f"❌ {err}")
+            return
 
-    if selected and selected != "Choose…":
-        from tools.company_info import company_info_tool
-        raw = company_info_tool.invoke(selected)
-        info = json.loads(raw)
+        agent_query = f"Research the company '{selected}' in the Indian market and return the full details as JSON."
+
+        with st.spinner(f"Agent is researching {selected}…"):
+            from agent import ask_agent
+            response = ask_agent(st.session_state.agent_executor, agent_query)
+            
+        try:
+            # Extract JSON from agent response
+            if "{" in response:
+                start = response.index("{")
+                end = response.rindex("}") + 1
+                info_json = response[start:end]
+                info = json.loads(info_json)
+            else:
+                info = {"message": "CareerBot couldn't find structured data for this company."}
+        except Exception:
+            info = {"message": "Error parsing company data from agent reasoning."}
 
         if "message" in info:
             st.warning(info["message"])
+            with st.expander("Agent Reasoning"):
+                st.write(response)
             return
 
         st.markdown(f"### {info.get('name', selected)}")
@@ -583,10 +669,14 @@ def tab_company():
         st.divider()
 
         cols = st.columns(4)
-        cols[0].metric("Employees", info.get("employees", "N/A"))
-        cols[1].metric("Revenue", info.get("revenue", info.get("funding", "N/A")))
-        cols[2].metric("Rating", info.get("rating", "N/A"))
-        cols[3].markdown(f"**CEO:** {info.get('ceo', 'N/A')}")
+        with cols[0]:
+            st.markdown(f'<div class="metric-box"><div class="metric-val" style="font-size:1.2rem;">{info.get("employees", "N/A")}</div><div class="metric-label">Employees</div></div>', unsafe_allow_html=True)
+        with cols[1]:
+            st.markdown(f'<div class="metric-box"><div class="metric-val" style="font-size:1.2rem;">{info.get("revenue", info.get("funding", "N/A"))}</div><div class="metric-label">Revenue/Funding</div></div>', unsafe_allow_html=True)
+        with cols[2]:
+            st.markdown(f'<div class="metric-box"><div class="metric-val" style="font-size:1.2rem;">{info.get("rating", "N/A")} ★</div><div class="metric-label">Rating</div></div>', unsafe_allow_html=True)
+        with cols[3]:
+            st.markdown(f'<div class="metric-box"><div class="metric-val" style="font-size:1.2rem;">{info.get("ceo", "N/A")}</div><div class="metric-label">CEO</div></div>', unsafe_allow_html=True)
 
         st.divider()
         col_a, col_b = st.columns(2)
@@ -628,7 +718,7 @@ CareerBot is an **AI-powered job search assistant** built for the **Indian job m
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | Streamlit |
-| **AI Agent** | LangChain + Google Gemini 1.5 Flash |
+| **AI Agent** | LangChain + Google Gemini 2.5 Flash |
 | **Job Data** | Indeed India scraper + curated mock dataset |
 | **Database** | SQLite (saved jobs & search history) |
 | **Language** | Python 3.11+ |
@@ -672,16 +762,39 @@ capbl/
 """)
 
 # ---------------------------------------------------------------------------
+# Tab: Market Intelligence
+# ---------------------------------------------------------------------------
+def tab_intelligence():
+    st.markdown("## 📈 Market Intelligence")
+    st.caption("AI Agent analysis of live hiring trends across Indian tech hubs.")
+
+    city = st.selectbox("Select City", ["Bangalore", "Mumbai", "Hyderabad", "Pune", "Delhi/NCR", "Chennai"])
+    
+    if st.button("🔍 Analyze Market", use_container_width=True):
+        err = load_agent()
+        if err: return
+        
+        agent_query = f"Analysis of current hiring trends in {city} for tech roles."
+        
+        with st.spinner(f"Agent is analyzing {city} market…"):
+            from agent import ask_agent
+            response = ask_agent(st.session_state.agent_executor, agent_query)
+            
+        st.markdown(f"### Reasoning for {city}")
+        st.info(response)
+
+# ---------------------------------------------------------------------------
 # Main app layout
 # ---------------------------------------------------------------------------
 def main():
     filters = render_sidebar()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "💬 Chat with CareerBot",
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "💬 Chat",
         "💼 Job Listings",
         "💾 Saved Jobs",
-        "🏢 Company Research",
+        "🏢 Company",
+        "📈 Intelligence",
         "ℹ️ About",
     ])
 
@@ -694,6 +807,8 @@ def main():
     with tab4:
         tab_company()
     with tab5:
+        tab_intelligence()
+    with tab6:
         tab_about()
 
 
